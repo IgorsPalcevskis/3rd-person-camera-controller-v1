@@ -8,8 +8,15 @@ public class CameraManager : MonoBehaviour
 
     public Transform targetTransform; // The object the camera will follow
     public Transform cameraPivot; // The Object that camera uses to pivot (look up and down)
+    public Transform cameraTransform; // The transform of the actual camera object in the scene
+    public LayerMask collisionLayers; // The layers we want our camera to collide with
+    private float defaultPosition;
     private Vector3 cameraFollowVelocity = Vector3.zero;
+    private Vector3 cameraVectorPosition;
 
+    public float cameraCollisionOffSet = 0.2f; // how much will camera jump off of objects it colliding with
+    public float minimumCollisionOffset = 0.2f;
+    public float cameraCollisionRadius = 0.2f;
     public float cameraFollowSpeed = 0.2f;
     public float cameraLookSpeed = 2;
     public float cameraPivotSpeed = 2;
@@ -23,12 +30,15 @@ public class CameraManager : MonoBehaviour
     {
         inputManager = FindObjectOfType<InputManager>();
         targetTransform = FindObjectOfType<PlayerManager>().transform;
+        cameraTransform = Camera.main.transform;
+        defaultPosition = cameraTransform.localPosition.z;
     }
 
     public void HandleAllCameraMovement()
     {
         FollowTarget();
         RotateCamera();
+        HandleCameraCollisions();
     }
 
     private void FollowTarget()
@@ -39,20 +49,45 @@ public class CameraManager : MonoBehaviour
 
     private void RotateCamera()
     {
+        Vector3 rotation;
+        Quaternion targetRotation;
+
         lookAngle = lookAngle + (inputManager.cameraInputX * cameraLookSpeed);
         pivotAngle = pivotAngle - (inputManager.cameraInputY * cameraPivotSpeed);
 
         // limit rotation on up and down
         pivotAngle = Mathf.Clamp(pivotAngle, minimumPivotAngle, maximumPivotAngle);
 
-        Vector3 rotation = Vector3.zero;
+        rotation = Vector3.zero;
         rotation.y = lookAngle;
-        Quaternion targetRotation = Quaternion.Euler(rotation);
+        targetRotation = Quaternion.Euler(rotation);
         transform.rotation = targetRotation;
 
         rotation = Vector3.zero;
         rotation.x = pivotAngle;
         targetRotation = Quaternion.Euler(rotation);
         cameraPivot.localRotation = targetRotation;
+    }
+
+    private void HandleCameraCollisions()
+    {
+        float targetPosition = defaultPosition;
+        RaycastHit hit;
+        Vector3 direction = cameraTransform.position - cameraPivot.position;
+        direction.Normalize();
+
+        if (Physics.SphereCast(cameraPivot.transform.position, cameraCollisionRadius, direction, out hit, Mathf.Abs(targetPosition), collisionLayers))
+        {
+            float distance = Vector3.Distance(cameraPivot.position, hit.point);
+            targetPosition =- (distance - cameraCollisionOffSet);
+        }
+
+        if (Mathf.Abs(targetPosition) < minimumCollisionOffset)
+        {
+            targetPosition =- minimumCollisionOffset;
+        }
+
+        cameraVectorPosition.z = Mathf.Lerp(cameraTransform.localPosition.z, targetPosition, 0.2f);
+        cameraTransform.localPosition = cameraVectorPosition;
     }
 }
