@@ -12,7 +12,7 @@ public class MainMenuScript : MonoBehaviour
 
     public void QuitTheGame()
     {
-        //UnityEditor.EditorApplication.isPlaying = false;
-        Application.Quit();
+        UnityEditor.EditorApplication.isPlaying = false;
+        //Application.Quit();
     }
 }
