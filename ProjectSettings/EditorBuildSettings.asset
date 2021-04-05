@@ -4,5 +4,11 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Main menu.unity
+    guid: 3b58a9e9e98f65845ac391f87d1bc9f8
+  - enabled: 1
+    path: Assets/3rd person camera controller v1.unity
+    guid: c6b6f3adb721d6b4f9004c14bf5dbc78
   m_configObjects: {}
